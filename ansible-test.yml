@@ -6,7 +6,7 @@
 
   tasks:
     - name: Create BD
-      cisco.aci.aci_bd:
+      aci_bd:
         host: APIC
         username: "{{ aci_username }}"              # Defined in Ansible
         password: "{{ aci_password}}"               # Defined in Ansible
