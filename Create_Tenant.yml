@@ -1,0 +1,16 @@
+---
+- name: Create Application
+  hosts: APIC
+  connection: local
+  gather_facts: False
+  tasks:
+  
+  
+    - name: Create BD
+      aci_tenant:
+        host: APIC
+        username: "{{ aci_username }}"              # Defined in Ansible
+        password: "{{ aci_password}}"               # Defined in Ansible
+        tenant: Jeremy-Test                         # Tenant - Dropdown for Playbook
+        description: Jeremy-Test-Tenant             # Bridge Domain - Dropdown for Playbook
+        state: Present
