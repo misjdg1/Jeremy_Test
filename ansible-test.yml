@@ -1,5 +1,5 @@
 ---
-- name: Create Bridge Domain
+- name: Create Application
   hosts: APIC
   connection: local
   gather_facts: False
@@ -10,12 +10,74 @@
         host: APIC
         username: "{{ aci_username }}"              # Defined in Ansible
         password: "{{ aci_password}}"               # Defined in Ansible
-        tenant: Jeremy_Test_Tenant                  # Tenant - Dropdown for Playbook
-        bd: Jeremy_Test_BD                          # Bridge Domain - Dropdown for Playbook
+        tenant: "{{ tenant }}"                      # Tenant - Dropdown for Playbook
+        bd: "{{ bd }}"                              # Bridge Domain - Dropdown for Playbook
         vrf: Private
         arp_flooding: yes
         l2_unknown_unicast: flood
         l3_unknown_multicast: flood
         multi_dest: encap-flood
+        state: present
+        validate_certs: False
+
+    - name: Add Subnet to BD
+      aci_bd_subnet:
+        host: APIC
+        username: "{{ aci_username }}"              # Defined in Ansible
+        password: "{{ aci_password }}"              # Defined in Ansible
+        tenant: "{{ tenant }}"                      # Tenant - Dropdown for Playbook
+        bd: "{{ bd }}"                              # Bridge Domain - Will be container that holds subnet information and associated to EPG, will pull Application Code for name from CMDB/IPAM.  E.g. "App0001"
+        gateway: "{{ gateway }}"                    # Subnet Gateway - Will need to be pulled from IPAM.  E.g. "10.254.38.1" for 10.254.38.0/24 network
+        mask: "{{ mask }}"                          # Subnet Mask - Will need to be pulled from IPAM.  E.g. "/24" for 10.254.38.0/24 network        
+        scope: public
+        state: present
+        validate_certs: False
+
+    - name: Add L3Out to BD
+      aci_bd_to_l3out:
+        host: APIC
+        username: "{{ aci_username }}"              # Defined in Ansible
+        password: "{{ aci_password }}"              # Defined in Ansible
+        tenant: "{{ tenant }}"                      # Tenant - Dropdown for Playbook
+        bd: "{{ bd }}"                              # PREVIOUSLY DEFINED TASK - Bridge Domain - Will be container that holds subnet information and associated to EPG, will pull Application Code for name from CMDB/IPAM.  E.g. "App0001"
+        l3out: CORE-NETWORK
+        state: present
+        validate_certs: False
+
+    - name: Create AP
+      aci_ap:
+        host: APIC
+        username: "{{ aci_username }}"              # Defined in Ansible
+        password: "{{ aci_password }}"              # Defined in Ansible
+        tenant: "{{ tenant }}"                      # Tenant - Dropdown for Playbook
+        ap: "{{ app_prof }}"                        # Application Profile - App code pulled from IPAM or CMDB.  E.g. "App0001_PRD"/"App0001_DEV"
+        name_alias: "{{ ap_alias }}"                # Application Profile Alias - Human readable name for application.  Listed in CMDB/IPAM.  E.g. "AD-Auth"
+        description: "{{ ap_description }}"         # Application Profile Description - Description of Application.  Will contain Alias & Zone. E.g. "AD-Auth Z6"
+        state: present
+        validate_certs: False
+
+    - name: Create EPG and Associate New BD
+      aci_epg:
+        host: APIC
+        username: "{{ aci_username }}"              # Defined in Ansible
+        password: "{{ aci_password }}"              # Defined in Ansible
+        tenant: "{{ tenant }}"                      # Tenant - Dropdown for Playbook
+        ap: "{{ app_prof }}"                        # PREVIOUSLY DEFINED TASK - Application Profile - App code pulled from IPAM or CMDB.  E.g. "App0001_PRD"/"App0001_DEV"
+        epg: "{{ epg }}"                            # Endpoint Group - Will reflect the application tier from CMDB/IPAM.  E.g. "APP"/"WEB"/"DB"
+        description: "{{ epg_description }}"        # Endpoint Group Description  - Will reflect Application ID & Application Tier. E.g. App0001_PRD APP
+        bd: "{{ bd }}"                              # PREVIOUSLY DEFINED TASK - Bridge Domain - Will be container that holds subnet information and associated to EPG, will pull Application Code for name from CMDB/IPAM.  E.g. "App0001"
+        state: present
+        validate_certs: False
+
+    - name: Consume Shared-Services Contract
+      aci_epg_to_contract:
+        host: APIC
+        username: "{{ aci_username }}"              # Defined in Ansible
+        password: "{{ aci_password }}"              # Defined in Ansible
+        tenant: "{{ tenant }}"                      # Tenant - Dropdown for Playbook             
+        ap: "{{ app_prof }}"                        # PREVIOUSLY DEFINED TASK - Application Profile - App code pulled from IPAM or CMDB.  E.g. "App0001_PRD"/"App0001_DEV"
+        epg: "{{ epg }}"                            # PREVIOUSLY DEFINED TASK - Endpoint Group - Will reflect the application tier from CMDB/IPAM.  E.g. "APP"/"WEB"/"DB"
+        contract: Shared-Services
+        contract_type: consumer
         state: present
         validate_certs: False
