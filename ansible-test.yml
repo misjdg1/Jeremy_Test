@@ -3,8 +3,9 @@
   hosts: APIC
   connection: local
   gather_facts: False
-
   tasks:
+  
+  
     - name: Create BD
       aci_bd:
         host: APIC
