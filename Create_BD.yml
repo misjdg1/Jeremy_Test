@@ -1,0 +1,22 @@
+---
+- name: Create Application
+  hosts: APIC
+  connection: local
+  gather_facts: False
+  tasks:
+  
+  
+    - name: Create BD
+      aci_bd:
+        host: APIC
+        username: "{{ aci_username }}"              # Defined in Ansible
+        password: "{{ aci_password}}"               # Defined in Ansible
+        tenant: Jeremy-Test                         # Tenant - Dropdown for Playbook
+        bd: Jeremy-Test                             # Bridge Domain - Dropdown for Playbook
+        vrf: Private
+        arp_flooding: yes
+        l2_unknown_unicast: flood
+        l3_unknown_multicast: flood
+        multi_dest: encap-flood
+        state: present
+        validate_certs: False
