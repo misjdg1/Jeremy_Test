@@ -11,8 +11,8 @@
         host: APIC
         username: "{{ aci_username }}"              # Defined in Ansible
         password: "{{ aci_password}}"               # Defined in Ansible
-        tenant: "{{ tenant }}"                      # Tenant - Dropdown for Playbook
-        bd: "{{ bd }}"                              # Bridge Domain - Dropdown for Playbook
+        tenant: Jeremy-Test                         # Tenant - Dropdown for Playbook
+        bd: Jeremy-Test                             # Bridge Domain - Dropdown for Playbook
         vrf: Private
         arp_flooding: yes
         l2_unknown_unicast: flood
